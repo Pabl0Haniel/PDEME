@@ -6,7 +6,7 @@ export type NewProps = {
     description: string;
 };
 
-export default function New({header,description}:NewProps){
+export default function News({header,description}:NewProps){
 
     return(
         <View style={styles.box}>
@@ -24,11 +24,11 @@ const styles = StyleSheet.create({
         margin: 20,
         borderRadius: 5,
     },
-    title: {
+    header: {
         fontSize: 20,
         fontWeight: 'bold',
     },
-    subTitle: {
+    description: {
         fontSize: 10,
     },
 });

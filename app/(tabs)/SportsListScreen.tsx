@@ -10,25 +10,57 @@ import SportModal from "@/components/modals/SportModal";
 export default function SportsListScreen(){
     const [sports, setSports] = useState<ISport[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [selectedSport, setSelectedSport] = useState<ISport>();
 
-    const onAdd = ( name:string, description: string) => {
-        const newSport: ISport = {
-            id: Math.random() * 1000,
-            name: name,
-            description: description
-        };
+    const onAdd = ( name:string, description: string, id?: number) => {
+   
+        if(!id || id <= 0){
+            const newSport: ISport = {
+                id: Math.random() * 1000,
+                name: name,
+                description: description
+            };
 
-        const sportPlus: ISport[] = [
-            ...sports,
-            newSport
-        ];
+            const sportPlus: ISport[] = [
+                ...sports,
+                newSport
+            ];
 
         setSports(sportPlus);
+    }else{
+        sports.forEach(sport=> {
+            if(sport.id==id){
+                sport.name = name;
+                sport.description = description
+            }
+        });
+    }
         setModalVisible(false)
     };
 
+    const onDelete = (id:number) => {
+        const newSports: Array<ISport> = [];
+
+        for (let index=0; index < sports.length; index++){
+            const sport = sports[index];
+
+            if(sport.id != id){
+                newSports.push(sport);
+            }
+        }
+
+        setSports(newSports);
+        setModalVisible(false);
+    }
+
     const openModal = () => {
+        setSelectedSport(undefined)
         setModalVisible(true);
+    };
+
+    const openEditModal = (selectedSport: ISport) => {
+        setSelectedSport(selectedSport)
+        setModalVisible(true)
     };
 
     const closeModal = () => {
@@ -45,14 +77,20 @@ export default function SportsListScreen(){
             </ThemedView>
             <ThemedView style={styles.container}>
 
-            {sports.map(sport=> <Sport key = {sport.id} title={sport.name} subTitle={sport.description} />)}
-
+            {sports.map(sport=>
+             <TouchableOpacity onPress={()=> openEditModal(sport)}>
+                <Sport key = {sport.id} title={sport.name} subTitle={sport.description} />
+             </TouchableOpacity>
+            
+            )}
             </ThemedView>
 
             <SportModal
                 visible={modalVisible}
                 onCancel={closeModal}
                 onAdd={onAdd}
+                onDelete={onDelete}
+                sport={selectedSport}
             />
         </MyScrollView>
     );

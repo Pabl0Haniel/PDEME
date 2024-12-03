@@ -6,29 +6,62 @@ import MyScrollView from "@/components/MyScrollView";
 import {useState} from 'react';
 import { INews } from "@/interfaces/INews";
 import NewModal from "@/components/modals/NewModal";
+import News from "@/components/news/News";
 
 export default function NewsListScreen(){
     const [news, setNews] = useState<INews[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [selectedNew, setSelectedNew] = useState<INews>();
 
-    const onAdd = ( header:string, description: string) => {
-        const newNew: INews = {
-            id: Math.random() * 1000,
-            header: header,
-            description: description
-        };
+    const onAdd = ( header:string, description: string, id?: number) => {
+   
+        if(!id || id <= 0){
+            const newNews: INews = {
+                id: Math.random() * 1000,
+                header: header,
+                description: description
+            };
 
-        const newPlus: INews[] = [
-            ...news,
-            newNew
-        ];
+            const newsPlus: INews[] = [
+                ...news,
+                newNews
+            ];
 
-        setNews(newPlus);
+        setNews(newsPlus);
+    }else{
+        news.forEach(New=> {
+            if(New.id==id){
+                New.header = header;
+                New.description = description
+            }
+        });
+    }
         setModalVisible(false)
     };
 
+    const onDelete = (id:number) => {
+        const newNews: Array<INews> = [];
+
+        for (let index=0; index < news.length; index++){
+            const New = news[index];
+
+            if(New.id != id){
+                newNews.push(New);
+            }
+        }
+
+        setNews(newNews);
+        setModalVisible(false);
+    }
+
     const openModal = () => {
+        setSelectedNew(undefined)
         setModalVisible(true);
+    };
+
+    const openEditModal = (selectedNew: INews) => {
+        setSelectedNew(selectedNew)
+        setModalVisible(true)
     };
 
     const closeModal = () => {
@@ -45,14 +78,20 @@ export default function NewsListScreen(){
             </ThemedView>
             <ThemedView style={styles.container}>
 
-            {news.map(news=> <New key = {news.id} header={news.header} description={news.description} />)}
-
+            {news.map(New=>
+             <TouchableOpacity onPress={()=> openEditModal(New)}>
+                <News key = {New.id} header={New.header} description={New.description} />
+             </TouchableOpacity>
+            
+            )}
             </ThemedView>
 
             <NewModal
                 visible={modalVisible}
                 onCancel={closeModal}
                 onAdd={onAdd}
+                onDelete={onDelete}
+                news={selectedNew}
             />
         </MyScrollView>
     );

@@ -1,16 +1,32 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Text, View, StyleSheet,Modal, TextInput, ViewBase, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
+import { ISport } from '@/interfaces/ISport';
 
 export type SportModalProps = {
     visible: boolean;
-    onAdd: (title: string, subTitle: string)=> void;
+    onAdd: (title: string, subTitle: string, id: number)=> void;
     onCancel: () => void;
+    onDelete: (id: number) => void;
+    sport?: ISport;
 };
 
-export default function SportModal({visible,onAdd,onCancel}:SportModalProps){
+export default function SportModal({visible,onAdd,onCancel,onDelete, sport}:SportModalProps){
     const [title, setTitle] = useState('');
     const [subTitle, setSubTitle] = useState('');
+    const [id, setId] = useState<number>(0);
+
+    useEffect(()=>{
+        if(sport){
+            setTitle(sport.name);
+            setSubTitle(sport.description);
+            setId(sport.id);
+        }else{
+            setTitle('');
+            setSubTitle('');
+            setId(0);
+        }
+    },[sport])
 
     return (
         <Modal visible={visible} animationType='fade' transparent={true} onRequestClose={() => {}}>
@@ -32,7 +48,7 @@ export default function SportModal({visible,onAdd,onCancel}:SportModalProps){
                     />
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.buttonAdd} onPress={() => onAdd(title,subTitle)}>
+                        <TouchableOpacity style={styles.buttonAdd} onPress={() => onAdd(title,subTitle,id)}>
                             <Text style={styles.buttonText}>
                                 Add
                             </Text>
@@ -41,6 +57,12 @@ export default function SportModal({visible,onAdd,onCancel}:SportModalProps){
                         <TouchableOpacity style={styles.buttonCancel} onPress={() => onCancel()}>
                             <Text style={styles.buttonText}>
                                 Cancel
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.buttonDelete} onPress={() => onDelete(id)} disabled={id<=0}>
+                            <Text style={styles.buttonText}>
+                                Delete
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -79,6 +101,15 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     buttonCancel: {
+        backgroundColor: 'orange',
+        borderRadius: 5,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 10,
+        padding: 20,
+    },
+    buttonDelete: {
         backgroundColor: 'red',
         borderRadius: 5,
         flex: 1,
