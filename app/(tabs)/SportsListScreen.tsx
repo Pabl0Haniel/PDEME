@@ -3,16 +3,55 @@ import { StyleSheet,TouchableOpacity, Text } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import Sport from "@/components/sport/Sport";
 import MyScrollView from "@/components/MyScrollView";
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import { ISport } from "@/interfaces/ISport";
 import SportModal from "@/components/modals/SportModal";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export default function SportsListScreen(){
     const [sports, setSports] = useState<ISport[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [selectedSport, setSelectedSport] = useState<ISport>();
 
-    const onAdd = ( name:string, description: string, id?: number) => {
+    const [location, setLocation] = useState({});
+    const [errorMsg, setErrorMsg] = useState('')
+
+    useEffect(()=>{
+        async function getData() {
+            try{
+                const data = await AsyncStorage.getItem('@SportApp:sports');
+                const sportsData = data != null?JSON.parse(data) : [];
+                setSports(sportsData)
+            } catch (e){
+            }
+        }
+
+        getData()
+    }, [])
+
+    useEffect(()=>{
+        (async () => {
+
+            let {status} = await Location.requestForegroundPermissionsAsync();
+            if (status!=='granted') {
+                setErrorMsg('Permission to access location was denied');
+                return;
+            }
+
+            let location= await Location.getCurrentPositionAsync({});
+            setLocation(location)
+        })();
+    },[]);
+
+    let text = 'Waiting..';
+    if (errorMsg) {
+        text = errorMsg;
+    }else if (location){
+        text = JSON.stringify(location);
+    }
+
+    const onAdd = async ( name:string, description: string, id?: number) => {
    
         if(!id || id <= 0){
             const newSport: ISport = {
@@ -27,6 +66,7 @@ export default function SportsListScreen(){
             ];
 
         setSports(sportPlus);
+        AsyncStorage.setItem('@SportApp:sports', JSON.stringify(sportPlus))
     }else{
         sports.forEach(sport=> {
             if(sport.id==id){
@@ -34,7 +74,10 @@ export default function SportsListScreen(){
                 sport.description = description
             }
         });
+
+        AsyncStorage.setItem('@SportApp:sports', JSON.stringify(sports))
     }
+    
         setModalVisible(false)
     };
 
@@ -50,6 +93,7 @@ export default function SportsListScreen(){
         }
 
         setSports(newSports);
+        AsyncStorage.setItem('@SportApp:sports', JSON.stringify(newSports))
         setModalVisible(false);
     }
 
@@ -74,6 +118,7 @@ export default function SportsListScreen(){
                 <TouchableOpacity onPress={()=>openModal()}>
                     <Text style={styles.headerButton}>+</Text>
                 </TouchableOpacity>
+                <Text style={styles.headerButton}>{text}</Text>
             </ThemedView>
             <ThemedView style={styles.container}>
 

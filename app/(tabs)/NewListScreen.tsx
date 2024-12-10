@@ -1,19 +1,57 @@
 import { StyleSheet,TouchableOpacity, Text } from "react-native";
 
 import { ThemedView } from "@/components/ThemedView";
-import New from "@/components/news/News";
 import MyScrollView from "@/components/MyScrollView";
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 import { INews } from "@/interfaces/INews";
 import NewModal from "@/components/modals/NewModal";
 import News from "@/components/news/News";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export default function NewsListScreen(){
     const [news, setNews] = useState<INews[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [selectedNew, setSelectedNew] = useState<INews>();
 
-    const onAdd = ( header:string, description: string, id?: number) => {
+    const [location, setLocation] = useState({});
+    const [errorMsg, setErrorMsg] = useState('')
+
+    useEffect(()=>{
+        async function getData() {
+            try{
+                const data = await AsyncStorage.getItem('@NewApp:News');
+                const newsData = data != null?JSON.parse(data) : [];
+                setNews(newsData)
+            } catch (e){
+            }
+        }
+
+        getData()
+    }, [])
+
+    useEffect(()=>{
+        (async () => {
+
+            let {status} = await Location.requestForegroundPermissionsAsync();
+            if (status!=='granted') {
+                setErrorMsg('Permission to access location was denied');
+                return;
+            }
+
+            let location= await Location.getCurrentPositionAsync({});
+            setLocation(location)
+        })();
+    },[]);
+
+    let text = 'Waiting..';
+    if (errorMsg) {
+        text = errorMsg;
+    }else if (location){
+        text = JSON.stringify(location);
+    }
+
+    const onAdd = async ( header:string, description: string, id?: number) => {
    
         if(!id || id <= 0){
             const newNews: INews = {
@@ -28,6 +66,7 @@ export default function NewsListScreen(){
             ];
 
         setNews(newsPlus);
+        AsyncStorage.setItem('@NewApp:News', JSON.stringify(newsPlus))
     }else{
         news.forEach(New=> {
             if(New.id==id){
@@ -35,6 +74,8 @@ export default function NewsListScreen(){
                 New.description = description
             }
         });
+
+        AsyncStorage.setItem('@NewApp:News', JSON.stringify(news))
     }
         setModalVisible(false)
     };
@@ -51,6 +92,7 @@ export default function NewsListScreen(){
         }
 
         setNews(newNews);
+        AsyncStorage.setItem('@NewApp:News', JSON.stringify(newNews))
         setModalVisible(false);
     }
 
@@ -75,6 +117,7 @@ export default function NewsListScreen(){
                 <TouchableOpacity onPress={()=>openModal()}>
                     <Text style={styles.headerButton}>+</Text>
                 </TouchableOpacity>
+                <Text style={styles.headerButton}>{text}</Text>
             </ThemedView>
             <ThemedView style={styles.container}>
 
