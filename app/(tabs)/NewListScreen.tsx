@@ -8,6 +8,7 @@ import NewModal from "@/components/modals/NewModal";
 import News from "@/components/news/News";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import {router} from 'expo-router';
 
 export default function NewsListScreen(){
     const [news, setNews] = useState<INews[]>([]);
@@ -106,6 +107,10 @@ export default function NewsListScreen(){
         setModalVisible(true)
     };
 
+     const navigateToDetails = (selectedNew: INews) => {
+            router.push({pathname: '/Screens/NewDetailScreen', params: {newId: selectedNew.id}})
+        };
+
     const closeModal = () => {
         setModalVisible(false);
     };
@@ -122,7 +127,7 @@ export default function NewsListScreen(){
             <ThemedView style={styles.container}>
 
             {news.map(New=>
-             <TouchableOpacity onPress={()=> openEditModal(New)}>
+             <TouchableOpacity onPress={()=> navigateToDetails(New)}>
                 <News key = {New.id} header={New.header} description={New.description} />
              </TouchableOpacity>
             

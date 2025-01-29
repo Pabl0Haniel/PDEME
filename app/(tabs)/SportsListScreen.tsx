@@ -8,6 +8,7 @@ import { ISport } from "@/interfaces/ISport";
 import SportModal from "@/components/modals/SportModal";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import {router} from 'expo-router';
 
 export default function SportsListScreen(){
     const [sports, setSports] = useState<ISport[]>([]);
@@ -107,6 +108,10 @@ export default function SportsListScreen(){
         setModalVisible(true)
     };
 
+    const navigateToDetails = (selectedSport: ISport) => {
+        router.push({pathname: '/Screens/SportDetailScreen', params: {sportId: selectedSport.id}})
+    };
+
     const closeModal = () => {
         setModalVisible(false);
     };
@@ -123,7 +128,7 @@ export default function SportsListScreen(){
             <ThemedView style={styles.container}>
 
             {sports.map(sport=>
-             <TouchableOpacity onPress={()=> openEditModal(sport)}>
+             <TouchableOpacity onPress={()=> navigateToDetails(sport)}>
                 <Sport key = {sport.id} title={sport.name} subTitle={sport.description} />
              </TouchableOpacity>
             
